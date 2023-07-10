@@ -13,14 +13,12 @@ class PronounModal(disnake.ui.Modal):
                 placeholder="e.g. she/her, they/he",
                 custom_id="pronouns",
                 style=disnake.TextInputStyle.short,
-                max_length=25
+                max_length=25,
             )
         ]
         super().__init__(title="Set your pronouns:", components=components)
 
     async def callback(self, inter: disnake.ModalInteraction):
-        await inter.response.send_message(inter.text_values["pronouns"], ephemeral=True)
-
         pronouns = inter.text_values["pronouns"]
         role_name = f"PRONOUNS: {pronouns}"
         for role in inter.author.roles:
@@ -32,11 +30,16 @@ class PronounModal(disnake.ui.Modal):
         for role in inter.guild.roles:
             if role.name == role_name:
                 await inter.author.add_roles(role)
-                return
+                await inter.response.send_message(embed=disnake.Embed(
+                    title="Success", description=f"Pronouns updated: `{pronouns}`",
+                    color=disnake.Color.green()), ephemeral=True)
 
         role = await inter.guild.create_role(name=role_name)
         await role.edit(position=1)
         await inter.author.add_roles(role)
+        await inter.response.send_message(embed=disnake.Embed(
+            title="Success", description=f"Pronouns updated: `{pronouns}`",
+            color=disnake.Color.green()), ephemeral=True)
 
 
 class RoleModal(disnake.ui.Modal):
@@ -47,6 +50,7 @@ class RoleModal(disnake.ui.Modal):
                 placeholder="get creative. idk",
                 custom_id="name",
                 style=disnake.TextInputStyle.single_line,
+                min_length=3,
                 max_length=100
             ),
             disnake.ui.TextInput(
@@ -55,33 +59,57 @@ class RoleModal(disnake.ui.Modal):
                 custom_id="color",
                 style=disnake.TextInputStyle.short,
                 min_length=7,
-                max_length=7
+                max_length=7,
+                required=False
             )
         ]
         super().__init__(title="Set your custom role:", components=components)
 
     async def callback(self, inter: disnake.ModalInteraction):
-        try:
-            color = disnake.Color(int(inter.text_values["color"][1:], 16))
-        except ValueError:
-            color = inter.text_values["color"]
-            await inter.response.send_message(embed=disnake.Embed(
-                title="Error", description=f"Invalid color: `{color}`",
-                color=disnake.Color.red()), ephemeral=True)
-            return
-        await inter.response.send_message(inter.text_values["name"], ephemeral=True)
+        name = inter.text_values["name"]
+        color_name = inter.text_values["color"]
+
+        kwargs = {}
+        if color_name:
+            try:
+                color = disnake.Color(int(color_name[1:], 16))
+                if color == disnake.Color(0): raise ValueError()
+            except ValueError:
+                await inter.response.send_message(embed=disnake.Embed(
+                    title="Error", description=f"Invalid color: `{color}`",
+                    color=disnake.Color.red()), ephemeral=True)
+                return
+            kwargs["color"] = color
+        kwargs["name"] = name
+
+        for role in inter.author.roles:
+            if role.color != disnake.Color(0):
+                await role.edit(**kwargs)
+                await inter.response.send_message(embed=disnake.Embed(
+                    title="Success", description=f"Role updated: `{name}`",
+                    color=disnake.Color.green()), ephemeral=True)
+                return
+
+        role = await inter.guild.create_role(
+            name=name, color=color, permissions=disnake.Permissions.none())
+        max_position = max(role.position for role in inter.guild.roles)
+        await role.edit(position=max_position-1)
+        await inter.author.add_roles(role)
+        await inter.response.send_message(embed=disnake.Embed(
+            title="Success", description=f"Role updated: `{name}`",
+            color=color), ephemeral=True)
 
 class IntroView(disnake.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
     @disnake.ui.button(
-        label="Set Pronouns", style=disnake.ButtonStyle.primary, custom_id="intro:pronouns")
+        label="Set Pronouns", style=disnake.ButtonStyle.primary, custom_id="intro:pronouns", emoji="\U0001f3f3\uFE0F\u200D\u26A7\uFE0F")
     async def pronouns(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
         await inter.response.send_modal(modal=PronounModal())
 
     @disnake.ui.button(
-        label="Set Role", style=disnake.ButtonStyle.primary, custom_id="intro:role")
+        label="Set Role", style=disnake.ButtonStyle.primary, custom_id="intro:role", emoji=u"\U0001F60E")
     async def role(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
         await inter.response.send_modal(modal=RoleModal())
 
