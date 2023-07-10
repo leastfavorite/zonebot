@@ -2,6 +2,7 @@ import os
 import disnake
 import argparse
 import logging
+import sqlite3
 
 from vc import Vc
 from config import register_config
@@ -9,9 +10,12 @@ from disnake.ext import commands
 
 
 parser = argparse.ArgumentParser(prog="ZoneBot", description="A Discord Bot")
+parser.add_argument('--database', required=True)
 parser.add_argument('--production', action='store_true')
 parser.add_argument('-v', '--verbose', action='store_true')
 args = parser.parse_args()
+
+database = sqlite3.connect(args.database)
 
 logging.basicConfig(level=(logging.DEBUG if args.verbose else logging.INFO))
 
@@ -29,5 +33,5 @@ if not args.production:
 
 bot = commands.InteractionBot(**bot_kwargs)
 bot.add_cog(Vc(bot))
-register_config(bot)
+register_config(bot, database.cursor())
 bot.run(os.environ["DISCORD_KEY"])

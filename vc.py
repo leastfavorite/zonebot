@@ -10,7 +10,7 @@ class Vc(commands.Cog):
         self.bot = bot
 
     async def _update_member(self, member: disnake.Member):
-        if not (role := self.vc_role[member.guild]): return
+        if not (role := await self.vc_role.get(member.guild)): return
         state = member.voice
         has_role = role in member.roles
         if state is None or state.deaf or state.self_deaf or state.afk \
@@ -30,7 +30,7 @@ class Vc(commands.Cog):
     @tasks.loop(minutes=30)
     async def resync_vc_role(self):
         for guild in self.bot.guilds:
-            role: disnake.Role = self.vc_role[guild]
+            role: disnake.Role = await self.vc_role.get(guild)
             if role is None: continue
             candidates = set()
             candidates.update(role.members)
