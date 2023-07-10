@@ -16,6 +16,7 @@ class Setting:
         return guild in self._value
 
     def __setitem__(self, guild: disnake.Guild, value):
+        # todo: config function to write to database
         self._value[guild] = value
 
 def register_config(bot: commands.Bot):
@@ -28,7 +29,8 @@ def register_config(bot: commands.Bot):
         async def _inner(inter: disnake.ApplicationCommandInteraction, value):
             if inter.guild is None: return
             getattr(cog, setting_name)[inter.guild] = value
-            await inter.response.send_message("Option updated.")
+            # todo: wrap these sorts of messages in embeds
+            await inter.response.send_message("Option updated.", ephemeral=True)
         return _inner
 
     for cogname, cog in bot.cogs.items():
@@ -42,6 +44,7 @@ def register_config(bot: commands.Bot):
 
         # add commands to all settings
         for varname, setting in cogvars:
+            # todo: grab values from database
             setting_name = setting.name if setting.name else varname.lower()
             setting_description = setting.description if setting.description else f"Sets '{setting_name}' config setting for '{cogname}'"
             if isinstance(setting.type_, disnake.Option):
