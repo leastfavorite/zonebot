@@ -5,6 +5,8 @@ import logging
 import sqlite3
 
 from vc import Vc
+from intro import Intro
+
 from config import register_config
 from disnake.ext import commands
 
@@ -32,6 +34,9 @@ if not args.production:
     bot_kwargs["test_guilds"] = [int(os.environ["GUILD_ID"])]
 
 bot = commands.InteractionBot(**bot_kwargs)
+
 bot.add_cog(Vc(bot))
+bot.add_cog(Intro(bot))
+
 register_config(bot, database.cursor())
 bot.run(os.environ["DISCORD_KEY"])
