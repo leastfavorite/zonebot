@@ -21,6 +21,24 @@ class PronounModal(disnake.ui.Modal):
     async def callback(self, inter: disnake.ModalInteraction):
         await inter.response.send_message(inter.text_values["pronouns"], ephemeral=True)
 
+        pronouns = inter.text_values["pronouns"]
+        role_name = f"PRONOUNS: {pronouns}"
+        for role in inter.author.roles:
+            if role.name.startswith("PRONOUNS: "):
+                await inter.author.remove_roles(role)
+                if len(role.members) == 0:
+                    await role.delete()
+
+        for role in inter.guild.roles:
+            if role.name == role_name:
+                await inter.author.add_roles(role)
+                return
+
+        role = await inter.guild.create_role(name=role_name)
+        await role.edit(position=1)
+        await inter.author.add_roles(role)
+
+
 class RoleModal(disnake.ui.Modal):
     def __init__(self):
         components = [
