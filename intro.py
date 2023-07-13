@@ -74,7 +74,7 @@ class RoleModal(disnake.ui.Modal):
                 if color == disnake.Color(0): raise ValueError()
             except ValueError:
                 await inter.response.send_message(embed=disnake.Embed(
-                    title="Error", description=f"Invalid color: `{color}`",
+                    title="Error", description=f"Invalid color: `{color_name}`",
                     color=disnake.Color.red()), ephemeral=True)
                 return
             kwargs["color"] = color

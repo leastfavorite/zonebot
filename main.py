@@ -8,6 +8,7 @@ from vc import Vc
 from intro import Intro
 from dj import Dj
 from whitelist import Whitelist
+from roles import Roles
 
 from config import register_config
 from disnake.ext import commands
@@ -42,6 +43,7 @@ bot.add_cog(Vc(bot))
 bot.add_cog(Intro(bot))
 bot.add_cog(Dj(bot))
 bot.add_cog(Whitelist(bot, database.cursor(), args.whitelist))
+bot.add_cog(Roles(bot, database.cursor()))
 
 register_config(bot, database.cursor())
 bot.run(os.environ["DISCORD_KEY"])
