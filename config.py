@@ -12,7 +12,6 @@ class Setting:
         self.type_ = type_
         self.description = description
         self.name = name
-
         self._hooks: DatabaseHooks = None
 
     async def get(self, guild: disnake.Guild):

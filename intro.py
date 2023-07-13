@@ -1,5 +1,4 @@
 import disnake
-
 from disnake.ext import commands
 
 elevated_perms = disnake.Permissions.none()
@@ -35,7 +34,6 @@ class PronounModal(disnake.ui.Modal):
                     color=disnake.Color.green()), ephemeral=True)
 
         role = await inter.guild.create_role(name=role_name)
-        await role.edit(position=1)
         await inter.author.add_roles(role)
         await inter.response.send_message(embed=disnake.Embed(
             title="Success", description=f"Pronouns updated: `{pronouns}`",
@@ -92,8 +90,6 @@ class RoleModal(disnake.ui.Modal):
 
         role = await inter.guild.create_role(
             name=name, color=color, permissions=disnake.Permissions.none())
-        max_position = max(role.position for role in inter.guild.roles)
-        await role.edit(position=max_position-1)
         await inter.author.add_roles(role)
         await inter.response.send_message(embed=disnake.Embed(
             title="Success", description=f"Role updated: `{name}`",
@@ -113,6 +109,9 @@ class IntroView(disnake.ui.View):
     async def role(self, button: disnake.ui.Button, inter: disnake.MessageInteraction):
         await inter.response.send_modal(modal=RoleModal())
 
+_PERMS = disnake.Permissions.none()
+_PERMS.manage_guild = True
+
 class Intro(commands.Cog):
     def __init__(self, bot: commands.InteractionBot):
         self.bot = bot
@@ -121,7 +120,7 @@ class Intro(commands.Cog):
     async def on_ready(self):
         self.bot.add_view(IntroView())
 
-    @commands.slash_command(description="Sends the intro message")
+    @commands.slash_command(description="Sends the intro message", default_member_permissions=_PERMS)
     async def send_intro_message(self, inter: disnake.ApplicationCommandInteraction):
         embed = disnake.Embed(
             title=u"\N{SUNFLOWER} Welcome! \N{SUNFLOWER}",

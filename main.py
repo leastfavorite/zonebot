@@ -6,6 +6,8 @@ import sqlite3
 
 from vc import Vc
 from intro import Intro
+from dj import Dj
+from whitelist import Whitelist
 
 from config import register_config
 from disnake.ext import commands
@@ -14,6 +16,7 @@ from disnake.ext import commands
 parser = argparse.ArgumentParser(prog="ZoneBot", description="A Discord Bot")
 parser.add_argument('--database', required=True)
 parser.add_argument('--production', action='store_true')
+parser.add_argument('--whitelist', required=True)
 parser.add_argument('-v', '--verbose', action='store_true')
 args = parser.parse_args()
 
@@ -37,6 +40,8 @@ bot = commands.InteractionBot(**bot_kwargs)
 
 bot.add_cog(Vc(bot))
 bot.add_cog(Intro(bot))
+bot.add_cog(Dj(bot))
+bot.add_cog(Whitelist(bot, database.cursor(), args.whitelist))
 
 register_config(bot, database.cursor())
 bot.run(os.environ["DISCORD_KEY"])
